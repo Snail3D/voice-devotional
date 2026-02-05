@@ -1,0 +1,57 @@
+#!/bin/bash
+# play-devotional - Generate and auto-play devotional
+
+THEME=${1:-peace}
+VOICE=${2:-josh}
+
+cd ~/clawd/skills/voice-devotional
+
+# Generate devotional
+echo "🎙️ Generating $THEME devotional..."
+node -e "
+const VoiceDevotion = require('./scripts/voice-devotional');
+const vd = new VoiceDevotion({
+  apiKey: process.env.ELEVEN_LABS_API_KEY,
+  outputDir: './output'
+});
+
+vd.generateDaily({
+  theme: '$THEME',
+  voiceId: '$VOICE',
+  format: 'audio'
+}).then(result => {
+  console.log('FILE:' + result.audioPath);
+  console.log('DURATION:' + result.lesson.estimatedDuration);
+  console.log('SCRIPTURE:' + result.lesson.scripture);
+}).catch(err => {
+  console.error('ERROR:' + err.message);
+  process.exit(1);
+});
+" 2>&1 | while read line; do
+  if [[ $line == FILE:* ]]; then
+    FILE="${line#FILE:}"
+  elif [[ $line == DURATION:* ]]; then
+    DURATION="${line#DURATION:}"
+  elif [[ $line == SCRIPTURE:* ]]; then
+    SCRIPTURE="${line#SCRIPTURE:}"
+  elif [[ $line == ERROR:* ]]; then
+    echo "❌ ${line#ERROR:}"
+    exit 1
+  fi
+done
+
+# Copy to desktop with nice name
+if [ -f "$FILE" ]; then
+  TIMESTAMP=$(date +"%Y-%m-%d")
+  DESKTOP_FILE="$HOME/Desktop/Devotional-${THEME}-${TIMESTAMP}.mp3"
+  cp "$FILE" "$DESKTOP_FILE"
+  echo "✓ Saved to Desktop"
+  
+  # Auto-play
+  echo "▶️  Playing now..."
+  open "$DESKTOP_FILE"
+  
+  echo ""
+  echo "🙏 $SCRIPTURE"
+  echo "⏱️  ~$((DURATION/60)) minutes"
+fi

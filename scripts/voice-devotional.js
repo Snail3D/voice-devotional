@@ -335,6 +335,28 @@ class VoiceDevotion {
   }
 
   /**
+   * Clean text for TTS - remove problematic punctuation
+   */
+  cleanTextForTTS(text) {
+    if (!text) return '';
+    
+    return text
+      // Replace smart quotes with regular quotes
+      .replace(/[\"\"]/g, '"')
+      .replace(/[\'\']/g, "'")
+      // Replace em/en dashes with simple dash
+      .replace(/[—–]/g, '-')
+      // Replace ellipses with period
+      .replace(/\.\.\./g, '. ')
+      // Clean up multiple spaces
+      .replace(/\s+/g, ' ')
+      // Ensure proper spacing after punctuation
+      .replace(/([.!?])([^\s])/g, '$1 $2')
+      // Trim
+      .trim();
+  }
+
+  /**
    * Format devotion content for TTS
    */
   formatDevotion(lesson) {
@@ -342,13 +364,13 @@ class VoiceDevotion {
       `Good morning. Today's devotional focuses on ${lesson.theme}.`,
       '',
       'Scripture:',
-      lesson.scripture || 'Opening passage',
+      this.cleanTextForTTS(lesson.scripture) || 'Opening passage',
       '',
       'Reflection:',
-      lesson.reflection || 'Today we reflect on this truth',
+      this.cleanTextForTTS(lesson.reflection) || 'Today we reflect on this truth',
       '',
       'Prayer:',
-      lesson.prayer || 'Closing prayer',
+      this.cleanTextForTTS(lesson.prayer) || 'Closing prayer',
       ''
     ];
 
@@ -360,15 +382,15 @@ class VoiceDevotion {
    */
   formatScripture(scripture) {
     const parts = [
-      scripture.intro || `Let us read from ${scripture.reference}`,
+      this.cleanTextForTTS(scripture.intro) || `Let us read from ${scripture.reference}`,
       '',
       'Scripture Reading:',
-      scripture.text || scripture.passage,
+      this.cleanTextForTTS(scripture.text) || this.cleanTextForTTS(scripture.passage),
       ''
     ];
 
     if (scripture.notes) {
-      parts.push('Notes:', scripture.notes, '');
+      parts.push('Notes:', this.cleanTextForTTS(scripture.notes), '');
     }
 
     return parts.join('\n');
@@ -382,13 +404,13 @@ class VoiceDevotion {
       `Day ${day} of ${totalDays}: ${lesson.daily_topic || 'Topic'}`,
       '',
       'Scripture:',
-      lesson.daily_passage || 'Opening',
+      this.cleanTextForTTS(lesson.daily_passage) || 'Opening',
       '',
       'Reflection:',
-      lesson.daily_reflection || 'Reflection',
+      this.cleanTextForTTS(lesson.daily_reflection) || 'Reflection',
       '',
       'Application:',
-      lesson.daily_application || 'Application for today',
+      this.cleanTextForTTS(lesson.daily_application) || 'Application for today',
       ''
     ];
 
@@ -404,16 +426,16 @@ class VoiceDevotion {
       'A journey through scripture',
       '',
       'First, all have sinned.',
-      content.verse1 || 'Romans 3:23 - All have sinned and fallen short',
+      this.cleanTextForTTS(content.verse1) || 'Romans 3:23 - All have sinned and fallen short',
       '',
       'Second, the wages of sin is death.',
-      content.verse2 || 'Romans 6:23 - The wages of sin is death',
+      this.cleanTextForTTS(content.verse2) || 'Romans 6:23 - The wages of sin is death',
       '',
       'Third, God offers a free gift.',
-      content.verse3 || 'Romans 6:23 - But the gift of God is eternal life',
+      this.cleanTextForTTS(content.verse3) || 'Romans 6:23 - But the gift of God is eternal life',
       '',
       'Fourth, belief and confession.',
-      content.verse4 || 'Romans 10:9 - Believe in your heart and confess',
+      this.cleanTextForTTS(content.verse4) || 'Romans 10:9 - Believe in your heart and confess',
       '',
       'Will you accept this free gift of eternal life?'
     ];

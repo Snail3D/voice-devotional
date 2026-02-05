@@ -1,5 +1,5 @@
 #!/bin/bash
-# play-devotional - Generate, play in QuickTime, then cleanup
+# play-devotional - Generate, play in QuickTime, auto-delete when done
 
 THEME=${1:-peace}
 VOICE=${2:-josh}
@@ -48,22 +48,26 @@ if [ -f "$FILE" ]; then
   echo "✓ Saved to Desktop"
   
   # Play in QuickTime Player
-  echo "▶️  Opening in QuickTime Player..."
-  open -a "QuickTime Player" "$DESKTOP_FILE"
-  
-  echo ""
+  echo "▶️  Playing in QuickTime Player..."
   echo "🙏 $SCRIPTURE"
   echo "⏱️  ~$((DURATION/60)) minutes"
   echo ""
-  echo "🗑️  Will auto-delete after playing..."
   
-  # Wait for duration plus buffer, then cleanup
-  SLEEP_TIME=$((DURATION + 30))
-  (
-    sleep $SLEEP_TIME
-    if [ -f "$DESKTOP_FILE" ]; then
-      rm "$DESKTOP_FILE"
-      echo "✓ Cleaned up: $DESKTOP_FILE"
-    fi
-  ) &
+  # Open in QuickTime
+  open -a "QuickTime Player" "$DESKTOP_FILE"
+  
+  # Wait for playback to finish (duration + 10 sec buffer), then delete
+  SLEEP_TIME=$((DURATION + 10))
+  echo "⏳ Playing... will auto-delete in ~$((SLEEP_TIME/60)) min"
+  
+  sleep $SLEEP_TIME
+  
+  # Close QuickTime and delete file
+  if [ -f "$DESKTOP_FILE" ]; then
+    osascript -e 'tell application "QuickTime Player" to quit' 2>/dev/null
+    sleep 2
+    rm "$DESKTOP_FILE"
+    echo ""
+    echo "✅ Devotional complete. File cleaned up."
+  fi
 fi

@@ -1,5 +1,5 @@
 #!/bin/bash
-# play-devotional - Generate and auto-play devotional
+# play-devotional - Generate, play in QuickTime, then cleanup
 
 THEME=${1:-peace}
 VOICE=${2:-josh}
@@ -47,11 +47,23 @@ if [ -f "$FILE" ]; then
   cp "$FILE" "$DESKTOP_FILE"
   echo "✓ Saved to Desktop"
   
-  # Auto-play
-  echo "▶️  Playing now..."
-  open "$DESKTOP_FILE"
+  # Play in QuickTime Player
+  echo "▶️  Opening in QuickTime Player..."
+  open -a "QuickTime Player" "$DESKTOP_FILE"
   
   echo ""
   echo "🙏 $SCRIPTURE"
   echo "⏱️  ~$((DURATION/60)) minutes"
+  echo ""
+  echo "🗑️  Will auto-delete after playing..."
+  
+  # Wait for duration plus buffer, then cleanup
+  SLEEP_TIME=$((DURATION + 30))
+  (
+    sleep $SLEEP_TIME
+    if [ -f "$DESKTOP_FILE" ]; then
+      rm "$DESKTOP_FILE"
+      echo "✓ Cleaned up: $DESKTOP_FILE"
+    fi
+  ) &
 fi

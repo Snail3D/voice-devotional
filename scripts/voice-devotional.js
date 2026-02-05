@@ -338,12 +338,21 @@ class VoiceDevotion {
    * Clean text for TTS - remove problematic punctuation
    */
   cleanTextForTTS(text) {
-    if (!text) return '';
+    // Handle non-string inputs
+    if (typeof text !== 'string') {
+      if (text && typeof text === 'object' && text.text) {
+        text = text.text;
+      } else {
+        return '';
+      }
+    }
+    
+    if (!text || text.length === 0) return '';
     
     return text
       // Replace smart quotes with regular quotes
-      .replace(/[\"\"]/g, '"')
-      .replace(/[\'\']/g, "'")
+      .replace(/[""]/g, '"')
+      .replace(/['']/g, "'")
       // Replace em/en dashes with simple dash
       .replace(/[—–]/g, '-')
       // Replace ellipses with period
